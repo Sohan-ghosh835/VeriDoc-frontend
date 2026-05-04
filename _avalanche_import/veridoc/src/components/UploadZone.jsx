@@ -56,38 +56,32 @@ const UploadZone = ({ onFileSelect, uploading }) => {
 
         {uploading ? (
           <div style={styles.uploadingState}>
-            <div style={styles.spinnerWrap}>
-              <div style={styles.spinnerLarge} />
-              <div style={styles.spinnerInner} />
-            </div>
+            <div style={styles.spinnerLarge} />
             <p style={styles.uploadingText}>Processing document...</p>
             <p style={styles.uploadingSub}>AI is analyzing your file</p>
           </div>
         ) : selectedFile ? (
           <div style={styles.filePreview}>
             <div style={styles.fileIconBox}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#FFB6C1" strokeWidth="1.5"/>
-                <polyline points="14 2 14 8 20 8" stroke="#FFB6C1" strokeWidth="1.5"/>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#e84142" strokeWidth="1.5"/>
+                <polyline points="14 2 14 8 20 8" stroke="#e84142" strokeWidth="1.5"/>
               </svg>
             </div>
             <div style={styles.fileInfo}>
               <p style={styles.fileName}>{selectedFile.name}</p>
               <p style={styles.fileSize}>{(selectedFile.size / 1024).toFixed(1)} KB</p>
             </div>
-            <span className="tag tag-pink">Ready</span>
+            <span className="tag tag-red">Ready</span>
           </div>
         ) : (
           <div style={styles.idleState}>
-            <div style={styles.uploadIconWrap}>
-              <div style={styles.uploadIconGlow} />
-              <div style={styles.uploadIcon}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="rgba(255,182,193,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <polyline points="17 8 12 3 7 8" stroke="#FFB6C1" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="12" y1="3" x2="12" y2="15" stroke="#FFB6C1" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </div>
+            <div style={styles.uploadIcon}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/>
+                <polyline points="17 8 12 3 7 8" stroke="#e84142" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="#e84142" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
             </div>
             <p style={styles.dropText}>DROP FILE HERE</p>
             <p style={styles.dropSub}>or click to browse</p>
@@ -108,22 +102,21 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '210px',
-    border: '1px dashed rgba(255,182,193,0.2)',
-    borderRadius: '12px',
+    minHeight: '200px',
+    border: '2px dashed #e5e5e5',
+    borderRadius: '8px',
     padding: '40px 24px',
-    transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-    background: 'rgba(255,182,193,0.02)',
+    transition: 'all 0.18s ease',
+    background: '#fafafa',
     userSelect: 'none',
   },
   zoneDragging: {
-    borderColor: 'rgba(255,182,193,0.5)',
+    borderColor: '#e84142',
+    background: 'rgba(232, 65, 66, 0.04)',
     borderStyle: 'solid',
-    background: 'rgba(255,182,193,0.06)',
-    boxShadow: '0 0 32px rgba(255,182,193,0.1), inset 0 0 32px rgba(255,182,193,0.04)',
   },
   zoneUploading: {
-    borderColor: 'rgba(255,182,193,0.25)',
+    borderColor: '#0a0a0a',
     borderStyle: 'solid',
   },
   idleState: {
@@ -132,41 +125,29 @@ const styles = {
     alignItems: 'center',
     gap: '10px',
   },
-  uploadIconWrap: {
-    position: 'relative',
-    marginBottom: '8px',
-  },
-  uploadIconGlow: {
-    position: 'absolute',
-    inset: '-8px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255,182,193,0.12) 0%, transparent 70%)',
-    animation: 'pulse-pink 2.5s ease-in-out infinite',
-  },
   uploadIcon: {
     width: '72px',
     height: '72px',
-    background: 'rgba(255,182,193,0.06)',
-    border: '1px solid rgba(255,182,193,0.18)',
-    borderRadius: '16px',
+    background: '#ffffff',
+    border: '2px solid #e5e5e5',
+    borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    zIndex: 1,
-    boxShadow: '0 0 20px rgba(255,182,193,0.08)',
+    marginBottom: '8px',
+    boxShadow: '2px 2px 0px #e5e5e5',
   },
   dropText: {
-    fontFamily: "var(--font-body)",
-    fontWeight: 700,
-    fontSize: '0.9rem',
-    color: 'rgba(255,255,255,0.7)',
-    letterSpacing: '0.1em',
+    fontFamily: "'DM Sans', sans-serif",
+    fontWeight: 800,
+    fontSize: '1rem',
+    color: '#0a0a0a',
+    letterSpacing: '0.08em',
   },
   dropSub: {
-    fontSize: '0.78rem',
-    color: 'rgba(255,255,255,0.3)',
-    fontFamily: "var(--font-body)",
+    fontSize: '0.82rem',
+    color: '#999',
+    fontFamily: "'DM Sans', sans-serif",
   },
   supportedTypes: {
     display: 'flex',
@@ -181,11 +162,11 @@ const styles = {
     padding: '8px',
   },
   fileIconBox: {
-    width: '52px',
-    height: '52px',
-    background: 'rgba(255,182,193,0.06)',
-    border: '1px solid rgba(255,182,193,0.18)',
-    borderRadius: '10px',
+    width: '56px',
+    height: '56px',
+    background: '#fff',
+    border: '2px solid #e5e5e5',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -197,61 +178,45 @@ const styles = {
     overflow: 'hidden',
   },
   fileName: {
-    fontSize: '0.88rem',
-    fontWeight: 600,
-    color: '#ffffff',
+    fontSize: '0.9rem',
+    fontWeight: 700,
+    color: '#0a0a0a',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   fileSize: {
-    fontSize: '0.72rem',
-    color: 'rgba(255,255,255,0.35)',
-    fontFamily: "var(--font-mono)",
+    fontSize: '0.75rem',
+    color: '#999',
+    fontFamily: "'DM Mono', monospace",
     marginTop: '2px',
   },
   uploadingState: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '14px',
-  },
-  spinnerWrap: {
-    position: 'relative',
-    width: '56px',
-    height: '56px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: '12px',
   },
   spinnerLarge: {
-    position: 'absolute',
-    inset: 0,
-    border: '2px solid rgba(255,182,193,0.1)',
-    borderTopColor: '#FFB6C1',
-    borderRightColor: '#FF8DA1',
+    width: '44px',
+    height: '44px',
+    border: '3px solid #e5e5e5',
+    borderTopColor: '#e84142',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
   },
-  spinnerInner: {
-    width: '20px',
-    height: '20px',
-    background: 'radial-gradient(circle, rgba(255,182,193,0.2) 0%, transparent 70%)',
-    borderRadius: '50%',
-    animation: 'pulse-pink 2s ease-in-out infinite',
-  },
   uploadingText: {
-    fontSize: '0.88rem',
-    fontWeight: 600,
-    color: '#FFB6C1',
-    fontFamily: "var(--font-body)",
-    letterSpacing: '0.04em',
+    fontSize: '0.95rem',
+    fontWeight: 700,
+    color: '#0a0a0a',
+    fontFamily: "'DM Sans', sans-serif",
+    letterSpacing: '-0.01em',
   },
   uploadingSub: {
-    fontSize: '0.75rem',
-    color: 'rgba(255,255,255,0.3)',
-    fontFamily: "var(--font-body)",
+    fontSize: '0.8rem',
+    color: '#999',
+    fontFamily: "'DM Sans', sans-serif",
   },
 }
 

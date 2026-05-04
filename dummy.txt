@@ -1,0 +1,4 @@
+This is a test document to verify the Gemini AI summary functionality.
+VeriDoc AI is a blockchain-based document verification platform.
+It uses Polygon for low fees and fast transactions, and IPFS for decentralized storage.
+Gemini AI provides concise summaries of the documents uploaded by users.

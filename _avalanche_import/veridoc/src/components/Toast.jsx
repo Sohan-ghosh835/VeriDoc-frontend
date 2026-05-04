@@ -35,9 +35,9 @@ const Toast = ({ message, type, onClose }) => {
   }
 
   const colorMap = {
-    success: { bg: 'rgba(0,0,0,0.85)', border: 'rgba(74,222,128,0.3)', color: '#4ade80', barColor: '#4ade80', glow: 'rgba(74,222,128,0.15)' },
-    error:   { bg: 'rgba(0,0,0,0.85)', border: 'rgba(248,113,113,0.3)', color: '#f87171', barColor: '#f87171', glow: 'rgba(248,113,113,0.15)' },
-    info:    { bg: 'rgba(0,0,0,0.85)', border: 'rgba(255,182,193,0.25)', color: '#FFB6C1', barColor: '#FFB6C1', glow: 'rgba(255,182,193,0.1)' },
+    success: { bg: '#f0fdf4', border: '#16a34a', color: '#15803d', barColor: '#16a34a' },
+    error:   { bg: '#fef2f2', border: '#e84142', color: '#dc2626', barColor: '#e84142' },
+    info:    { bg: '#ffffff', border: '#0a0a0a', color: '#0a0a0a', barColor: '#0a0a0a' },
   }
 
   const c = colorMap[type] || colorMap.info
@@ -46,11 +46,10 @@ const Toast = ({ message, type, onClose }) => {
     <div style={{
       ...styles.toast,
       background: c.bg,
-      border: `1px solid ${c.border}`,
+      border: `2px solid ${c.border}`,
       color: c.color,
       opacity: visible ? 1 : 0,
-      transform: visible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.95)',
-      boxShadow: `0 0 32px ${c.glow}, 0 8px 32px rgba(0,0,0,0.8)`,
+      transform: visible ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.97)',
     }}>
       {/* Progress bar */}
       <div style={{ ...styles.progressBar, background: c.barColor }} />
@@ -74,19 +73,18 @@ const styles = {
     position: 'relative',
     minWidth: '320px',
     maxWidth: '420px',
-    borderRadius: '12px',
+    borderRadius: '6px',
+    boxShadow: '4px 4px 0px rgba(0,0,0,0.15)',
     overflow: 'hidden',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
+    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   progressBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
-    height: '2px',
+    height: '3px',
     width: '100%',
-    opacity: 0.6,
+    opacity: 0.3,
     animation: 'shrink 4s linear forwards',
   },
   content: {
@@ -100,7 +98,7 @@ const styles = {
     fontSize: '0.875rem',
     fontWeight: 500,
     lineHeight: 1.5,
-    fontFamily: "'Segoe UI', Arial, sans-serif",
+    fontFamily: "'DM Sans', sans-serif",
   },
   close: {
     background: 'none',
@@ -134,5 +132,3 @@ export const ToastContainer = ({ toasts, removeToast }) => (
 )
 
 export default Toast
-
-

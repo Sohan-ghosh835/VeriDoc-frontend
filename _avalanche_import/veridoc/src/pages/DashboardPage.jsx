@@ -1,29 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import VerifyPanel from '../components/VerifyPanel'
 import { BACKEND_URL } from '../config'
 import axios from 'axios'
-
-function useReveal() {
-  const ref = useRef(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) el.classList.add('visible') },
-      { threshold: 0.1 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
-  return ref
-}
 
 const DashboardPage = ({ wallet, showToast }) => {
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(null)
-  const headerRef = useReveal()
-  const gridRef = useReveal()
 
   const fetchDocs = async () => {
     if (!wallet) return
@@ -52,12 +35,10 @@ const DashboardPage = ({ wallet, showToast }) => {
     <div style={styles.page}>
       <div className="container" style={styles.inner}>
 
-        {/* Page Header */}
-        <div ref={headerRef} className="reveal" style={styles.header}>
+        {/* Page Header — Avalanche style */}
+        <div style={styles.header} className="fade-in">
           <div style={styles.headerLeft}>
-            <div style={styles.headerNum} className="display-text">
-              <span style={{ color: 'rgba(255,182,193,0.08)' }}>02</span>
-            </div>
+            <div style={styles.headerNum} className="display-text">02</div>
             <div>
               <div style={styles.headerChip}>DASHBOARD</div>
               <h1 style={styles.headerTitle}>YOUR DOCUMENTS</h1>
@@ -68,10 +49,7 @@ const DashboardPage = ({ wallet, showToast }) => {
           </div>
           {wallet && (
             <div style={styles.walletInfo}>
-              <div style={styles.walletDotWrap}>
-                <div style={styles.walletDot} />
-                <div style={styles.walletDotPing} />
-              </div>
+              <div style={styles.walletDot} />
               <div>
                 <p style={styles.walletLabel}>CONNECTED WALLET</p>
                 <code style={styles.walletAddr}>{wallet.address.slice(0, 14)}…{wallet.address.slice(-6)}</code>
@@ -81,25 +59,25 @@ const DashboardPage = ({ wallet, showToast }) => {
         </div>
 
         {/* Main grid */}
-        <div ref={gridRef} className="reveal dashboard-grid-override" style={styles.grid}>
+        <div style={styles.grid} className="dashboard-grid-override fade-in-delay-1">
 
           {/* LEFT: Document list */}
           <div style={styles.leftCol}>
-            <div style={styles.glassCard}>
+            <div className="card" style={{ border: '2px solid #0a0a0a', boxShadow: '4px 4px 0px #0a0a0a' }}>
               <div style={styles.listHeader}>
                 <div>
                   <div style={styles.listChip}>HISTORY</div>
-                  <h2 style={styles.listTitle}>Document Registry</h2>
+                  <h2 style={styles.listTitle}>DOCUMENT REGISTRY</h2>
                 </div>
                 {wallet && (
                   <button
                     className="btn btn-secondary btn-sm"
                     onClick={fetchDocs}
                     disabled={loading}
-                    style={{ borderRadius: '8px' }}
+                    style={{ borderRadius: '4px' }}
                   >
-                    {loading ? <span className="spinner" /> : (
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    {loading ? <span className="spinner" style={{ borderTopColor: '#0a0a0a' }} /> : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                         <polyline points="23 4 23 10 17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                         <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
@@ -113,11 +91,11 @@ const DashboardPage = ({ wallet, showToast }) => {
 
               {!wallet ? (
                 <div style={styles.emptyState}>
-                  <div style={styles.emptyIconWrap}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                      <rect x="2" y="7" width="20" height="14" rx="2" stroke="rgba(255,182,193,0.4)" strokeWidth="1.5"/>
-                      <path d="M16 14a1 1 0 110-2 1 1 0 010 2z" fill="rgba(255,182,193,0.4)"/>
-                      <path d="M2 10h20" stroke="rgba(255,182,193,0.4)" strokeWidth="1.5"/>
+                  <div style={styles.emptyIcon}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="7" width="20" height="14" rx="2" stroke="#ccc" strokeWidth="1.5"/>
+                      <path d="M16 14a1 1 0 110-2 1 1 0 010 2z" fill="#ccc"/>
+                      <path d="M2 10h20" stroke="#ccc" strokeWidth="1.5"/>
                     </svg>
                   </div>
                   <p style={styles.emptyTitle}>NO WALLET CONNECTED</p>
@@ -131,7 +109,7 @@ const DashboardPage = ({ wallet, showToast }) => {
               ) : docs.length === 0 ? (
                 <div style={styles.emptyState}>
                   <div style={styles.emptyBigText} className="display-text">
-                    ZER<span className="gradient-text">O</span>
+                    ZER<span style={{ color: '#e84142' }}>O</span>
                   </div>
                   <p style={styles.emptyTitle}>NO DOCUMENTS YET</p>
                   <p style={styles.emptySub}>Upload and store documents on-chain to see them here.</p>
@@ -139,7 +117,7 @@ const DashboardPage = ({ wallet, showToast }) => {
               ) : (
                 <div style={styles.docList}>
                   {docs.map((doc, i) => (
-                    <div key={i} style={styles.docCard} className="card-hover">
+                    <div key={i} style={styles.docCard}>
                       <div style={styles.docIndex}>{String(i + 1).padStart(2, '0')}</div>
                       <div style={styles.docBody}>
                         <div style={styles.docTop}>
@@ -151,11 +129,11 @@ const DashboardPage = ({ wallet, showToast }) => {
                               className="btn btn-secondary btn-sm"
                               onClick={() => copyText(doc.ipfsHash, `hash-${i}`)}
                               title="Copy hash"
-                              style={{ borderRadius: '7px' }}
+                              style={{ borderRadius: '4px' }}
                             >
                               {copied === `hash-${i}` ? (
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                  <polyline points="20 6 9 17 4 12" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round"/>
+                                  <polyline points="20 6 9 17 4 12" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"/>
                                 </svg>
                               ) : (
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -171,7 +149,7 @@ const DashboardPage = ({ wallet, showToast }) => {
                                 rel="noreferrer"
                                 className="btn btn-secondary btn-sm"
                                 title="View on IPFS"
-                                style={{ borderRadius: '7px' }}
+                                style={{ borderRadius: '4px' }}
                               >
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                                   <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -190,15 +168,15 @@ const DashboardPage = ({ wallet, showToast }) => {
                         <div style={styles.docMeta}>
                           {doc.timestamp && (
                             <span style={styles.metaItem}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="2"/>
-                                <polyline points="12 6 12 12 16 14" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round"/>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#999" strokeWidth="2"/>
+                                <polyline points="12 6 12 12 16 14" stroke="#999" strokeWidth="2" strokeLinecap="round"/>
                               </svg>
                               {new Date(doc.timestamp).toLocaleDateString()}
                             </span>
                           )}
                           {doc.stored && (
-                            <span className="tag tag-success" style={{ fontSize: '0.58rem', padding: '2px 8px' }}>
+                            <span className="tag tag-success" style={{ fontSize: '0.6rem', padding: '2px 8px' }}>
                               ON-CHAIN
                             </span>
                           )}
@@ -212,19 +190,12 @@ const DashboardPage = ({ wallet, showToast }) => {
           </div>
 
           {/* RIGHT: Verify panel */}
-          <div style={styles.rightCol}>
+          <div style={styles.rightCol} className="fade-in-delay-2">
             <VerifyPanel wallet={wallet} showToast={showToast} />
 
             {/* Info box */}
             <div style={styles.infoBox}>
-              <div style={styles.infoBoxHeader}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                  <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                HOW VERIFICATION WORKS
-              </div>
+              <div style={styles.infoBoxHeader}>HOW VERIFICATION WORKS</div>
               <div style={styles.infoSteps}>
                 {[
                   { n: '1', text: 'Upload document and store hash on blockchain' },
@@ -249,10 +220,8 @@ const DashboardPage = ({ wallet, showToast }) => {
 const styles = {
   page: {
     paddingTop: '56px',
-    paddingBottom: '120px',
-    minHeight: 'calc(100vh - 90px)',
-    position: 'relative',
-    zIndex: 1,
+    paddingBottom: '100px',
+    minHeight: 'calc(100vh - 92px)',
   },
   inner: {
     display: 'flex',
@@ -264,8 +233,8 @@ const styles = {
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    paddingBottom: '36px',
-    borderBottom: '1px solid rgba(255,182,193,0.1)',
+    paddingBottom: '32px',
+    borderBottom: '2px solid #0a0a0a',
     gap: '24px',
     flexWrap: 'wrap',
   },
@@ -276,87 +245,65 @@ const styles = {
   },
   headerNum: {
     fontSize: 'clamp(60px, 8vw, 100px)',
-    fontWeight: 900,
+    color: '#f0f0f0',
+    fontWeight: 400,
     lineHeight: 0.85,
-    userSelect: 'none',
-    fontFamily: 'var(--font-body)',
   },
   headerChip: {
     display: 'inline-block',
-    background: 'linear-gradient(135deg, #FFB6C1, #FF8DA1)',
+    background: '#e84142',
     color: '#fff',
-    fontSize: '0.58rem',
+    fontSize: '0.62rem',
     fontWeight: 800,
-    letterSpacing: '0.14em',
+    letterSpacing: '0.12em',
     padding: '3px 10px',
-    borderRadius: '6px',
-    marginBottom: '10px',
-    fontFamily: "var(--font-body)",
-    boxShadow: '0 0 12px rgba(255,182,193,0.35)',
+    borderRadius: '3px',
+    marginBottom: '8px',
+    fontFamily: "'DM Sans', sans-serif",
   },
   headerTitle: {
     fontSize: 'clamp(1.4rem, 4vw, 2rem)',
     fontWeight: 800,
-    color: 'var(--text)',
+    color: '#0a0a0a',
     letterSpacing: '-0.03em',
-    fontFamily: "var(--font-display)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   headerSub: {
-    fontSize: '0.86rem',
-    color: 'var(--text-2)',
+    fontSize: '0.88rem',
+    color: '#777',
     lineHeight: 1.6,
     marginTop: '6px',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   walletInfo: {
     display: 'flex',
     alignItems: 'center',
-    gap: '14px',
-    padding: '16px 22px',
-    background: 'rgba(255,182,193,0.04)',
-    border: '1px solid rgba(255,182,193,0.15)',
-    borderRadius: '14px',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-  },
-  walletDotWrap: {
-    position: 'relative',
-    width: '12px',
-    height: '12px',
-    flexShrink: 0,
+    gap: '12px',
+    padding: '14px 20px',
+    border: '2px solid #0a0a0a',
+    borderRadius: '8px',
+    background: '#fafafa',
   },
   walletDot: {
     width: '10px',
     height: '10px',
     borderRadius: '50%',
-    background: '#4ade80',
-    boxShadow: '0 0 8px rgba(74,222,128,0.6)',
-    position: 'absolute',
-    top: '1px',
-    left: '1px',
-  },
-  walletDotPing: {
-    width: '12px',
-    height: '12px',
-    borderRadius: '50%',
-    border: '1px solid rgba(74,222,128,0.4)',
-    position: 'absolute',
-    top: 0,
-    left: 0,
+    background: '#16a34a',
+    flexShrink: 0,
     animation: 'pulse 2s ease-in-out infinite',
   },
   walletLabel: {
-    fontSize: '0.58rem',
+    fontSize: '0.6rem',
     fontWeight: 800,
-    color: 'rgba(255,255,255,0.3)',
-    letterSpacing: '0.14em',
-    fontFamily: "var(--font-body)",
+    color: '#999',
+    letterSpacing: '0.12em',
+    fontFamily: "'DM Sans', sans-serif",
     marginBottom: '4px',
   },
   walletAddr: {
-    fontSize: '0.78rem',
-    color: 'var(--text-2)',
-    fontFamily: "var(--font-mono)",
+    fontSize: '0.8rem',
+    color: '#0a0a0a',
+    fontFamily: "'DM Mono', monospace",
   },
   // Grid
   grid: {
@@ -367,15 +314,6 @@ const styles = {
   },
   leftCol: { display: 'flex', flexDirection: 'column', gap: '16px' },
   rightCol: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  glassCard: {
-    background: 'var(--bg-card)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid var(--border)',
-    borderRadius: '16px',
-    padding: '24px',
-    boxShadow: 'var(--shadow-card)',
-  },
   listHeader: {
     display: 'flex',
     alignItems: 'flex-start',
@@ -384,29 +322,24 @@ const styles = {
   },
   listChip: {
     display: 'inline-block',
-    background: 'rgba(255,182,193,0.1)',
-    color: '#FFB6C1',
-    fontSize: '0.58rem',
+    background: '#0a0a0a',
+    color: '#fff',
+    fontSize: '0.62rem',
     fontWeight: 800,
-    letterSpacing: '0.12em',
-    padding: '3px 10px',
-    borderRadius: '6px',
-    marginBottom: '8px',
-    fontFamily: "var(--font-body)",
-    border: '1px solid rgba(255,182,193,0.2)',
+    letterSpacing: '0.1em',
+    padding: '3px 8px',
+    borderRadius: '3px',
+    marginBottom: '6px',
+    fontFamily: "'DM Sans', sans-serif",
   },
   listTitle: {
-    fontSize: '1.05rem',
-    fontWeight: 700,
-    color: 'var(--text)',
+    fontSize: '1.1rem',
+    fontWeight: 800,
+    color: '#0a0a0a',
     letterSpacing: '-0.02em',
-    fontFamily: "var(--font-display)",
+    fontFamily: "'DM Sans', sans-serif",
   },
-  divider: {
-    height: '1px',
-    background: 'var(--divider)',
-    margin: '18px 0',
-  },
+  divider: { height: '1px', background: '#e5e5e5', margin: '18px 0' },
   emptyState: {
     display: 'flex',
     flexDirection: 'column',
@@ -416,41 +349,41 @@ const styles = {
     padding: '48px 20px',
     textAlign: 'center',
   },
-  emptyIconWrap: {
+  emptyIcon: {
     width: '64px',
     height: '64px',
-    background: 'rgba(255,182,193,0.04)',
-    border: '1px solid rgba(255,182,193,0.12)',
-    borderRadius: '14px',
+    background: '#f5f5f5',
+    border: '1px solid #e5e5e5',
+    borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyBigText: {
     fontSize: '64px',
-    color: 'rgba(255,255,255,0.05)',
-    fontWeight: 900,
+    color: '#f0f0f0',
+    fontWeight: 400,
     lineHeight: 0.85,
   },
   emptyTitle: {
-    fontSize: '0.8rem',
-    fontWeight: 700,
-    color: 'rgba(255,255,255,0.5)',
-    letterSpacing: '0.08em',
-    fontFamily: "var(--font-body)",
+    fontSize: '0.82rem',
+    fontWeight: 800,
+    color: '#0a0a0a',
+    letterSpacing: '0.06em',
+    fontFamily: "'DM Sans', sans-serif",
   },
   emptySub: {
-    fontSize: '0.78rem',
-    color: 'rgba(255,255,255,0.25)',
+    fontSize: '0.8rem',
+    color: '#999',
     lineHeight: 1.6,
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
     maxWidth: '260px',
   },
   miniSpinner: {
     width: '28px',
     height: '28px',
-    border: '2px solid rgba(255,182,193,0.1)',
-    borderTopColor: '#FFB6C1',
+    border: '2.5px solid #f0f0f0',
+    borderTopColor: '#e84142',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
   },
@@ -464,21 +397,20 @@ const styles = {
     alignItems: 'flex-start',
     gap: '14px',
     padding: '14px 16px',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
-    background: 'var(--bg-input)',
-    transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+    border: '1px solid #e5e5e5',
+    borderRadius: '8px',
+    background: '#fafafa',
+    transition: 'all 0.15s ease',
     cursor: 'default',
   },
   docIndex: {
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
     fontWeight: 800,
-    fontSize: '0.9rem',
-    color: 'var(--text-3)',
+    fontSize: '1.2rem',
+    color: '#e5e5e5',
     flexShrink: 0,
     lineHeight: 1,
-    marginTop: '4px',
-    opacity: 0.5,
+    marginTop: '2px',
   },
   docBody: { flex: 1, minWidth: 0 },
   docTop: {
@@ -489,13 +421,12 @@ const styles = {
     flexWrap: 'wrap',
   },
   docHash: {
-    fontSize: '0.72rem',
-    color: '#FFB6C1',
-    fontFamily: "var(--font-mono)",
-    background: 'rgba(255,182,193,0.08)',
+    fontSize: '0.75rem',
+    color: '#e84142',
+    fontFamily: "'DM Mono', monospace",
+    background: 'rgba(232,65,66,0.06)',
     padding: '3px 8px',
-    borderRadius: '6px',
-    border: '1px solid rgba(255,182,193,0.12)',
+    borderRadius: '4px',
   },
   docActions: {
     display: 'flex',
@@ -503,11 +434,11 @@ const styles = {
     flexShrink: 0,
   },
   docSummary: {
-    fontSize: '0.75rem',
-    color: 'var(--text-3)',
+    fontSize: '0.78rem',
+    color: '#666',
     lineHeight: 1.5,
     marginTop: '8px',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   docMeta: {
     display: 'flex',
@@ -520,30 +451,23 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '5px',
-    fontSize: '0.7rem',
-    color: 'rgba(255,255,255,0.25)',
-    fontFamily: "var(--font-body)",
+    fontSize: '0.72rem',
+    color: '#999',
+    fontFamily: "'DM Sans', sans-serif",
   },
   infoBox: {
-    background: 'rgba(255,182,193,0.03)',
-    border: '1px solid rgba(255,182,193,0.12)',
-    borderRadius: '14px',
+    border: '2px solid #0a0a0a',
+    borderRadius: '10px',
     overflow: 'hidden',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
   },
   infoBoxHeader: {
-    background: 'rgba(255,182,193,0.06)',
-    borderBottom: '1px solid rgba(255,182,193,0.1)',
-    color: 'rgba(255,182,193,0.8)',
+    background: '#0a0a0a',
+    color: '#fff',
     padding: '12px 20px',
-    fontSize: '0.65rem',
+    fontSize: '0.68rem',
     fontWeight: 800,
-    letterSpacing: '0.12em',
-    fontFamily: "var(--font-body)",
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
+    letterSpacing: '0.1em',
+    fontFamily: "'DM Sans', sans-serif",
   },
   infoSteps: {
     padding: '16px 20px',
@@ -559,23 +483,22 @@ const styles = {
   infoStepNum: {
     width: '24px',
     height: '24px',
-    background: 'rgba(255,182,193,0.1)',
-    border: '1px solid rgba(255,182,193,0.2)',
-    color: '#FFB6C1',
-    borderRadius: '7px',
+    background: '#e84142',
+    color: '#fff',
+    borderRadius: '4px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '0.7rem',
     fontWeight: 800,
     flexShrink: 0,
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   infoStepText: {
-    fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.4)',
+    fontSize: '0.82rem',
+    color: '#555',
     lineHeight: 1.5,
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
     paddingTop: '3px',
   },
 }

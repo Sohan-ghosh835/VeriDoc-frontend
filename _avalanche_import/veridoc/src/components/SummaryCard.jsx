@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ethers } from 'ethers'
-import { VERIDOC_ABI, getContractAddressForChain, retryWithBackoff } from '../config'
+import { VERIDOC_ABI, CONTRACT_ADDRESS } from '../config'
 
 const SummaryCard = ({ result, wallet, showToast }) => {
   const [storing, setStoring] = useState(false)
@@ -14,43 +14,28 @@ const SummaryCard = ({ result, wallet, showToast }) => {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const formatChainError = (error) => {
-    const raw = String(error?.reason || error?.message || '').replace(/\uFFFD/g, ' ').trim()
-    const lower = raw.toLowerCase()
-    if (lower.includes('already exists')) return 'This document is already stored on-chain.'
-    if (lower.includes('too many errors') || lower.includes('rate limit'))
-      return 'RPC provider rate-limited requests. Please wait a bit and try again.'
-    if (lower.includes('could not coalesce error') || lower.includes('unknown_error'))
-      return 'RPC endpoint error. Please retry or switch wallet RPC network endpoint.'
-    if (lower.includes('network error') || lower.includes('failed to fetch'))
-      return 'Network error while sending transaction. Check wallet network connection.'
-    return 'Transaction failed. Please retry in a moment.'
-  }
-
   const storeOnChain = async () => {
-    if (!wallet) { showToast('Please connect your wallet first!', 'error'); return }
+    if (!wallet) {
+      showToast('Please connect your wallet first!', 'error')
+      return
+    }
     setStoring(true)
     try {
-      const chainId = wallet?.chainId ?? Number((await wallet.provider.getNetwork()).chainId)
-      const contractAddress = getContractAddressForChain(chainId)
-      if (!contractAddress) {
-        showToast(`Unsupported network (chain ${chainId}). Configure contract address for this chain.`, 'error')
-        return
-      }
-      const code = await wallet.provider.getCode(contractAddress)
-      if (code === '0x') {
-        showToast(`Smart contract is not deployed at ${contractAddress} on this network.`, 'error')
-        setStoring(false); return
-      }
-      const contract = new ethers.Contract(contractAddress, VERIDOC_ABI, wallet.signer)
-      const tx = await retryWithBackoff(() => contract.storeDocHash(result.ipfsHash))
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, VERIDOC_ABI, wallet.signer)
+      const tx = await contract.storeDocHash(result.ipfsHash)
       showToast('Transaction submitted! Waiting for confirmation...', 'info')
       await tx.wait()
       setTxHash(tx.hash)
       setStored(true)
       showToast('Document stored on blockchain!', 'success')
     } catch (err) {
-      showToast(formatChainError(err), 'error')
+      const msg = err?.reason || err?.message || 'Transaction failed'
+      showToast(
+        msg.includes('already exists')
+          ? 'This document is already stored on-chain.'
+          : `Error: ${msg}`,
+        'error'
+      )
     } finally {
       setStoring(false)
     }
@@ -59,18 +44,18 @@ const SummaryCard = ({ result, wallet, showToast }) => {
   return (
     <div style={styles.card} className="fade-in">
 
-      {/* Header */}
+      {/* Header bar */}
       <div style={styles.headerBar}>
         <div style={styles.headerLeft}>
           <div style={styles.aiChip}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-            <span>Gemini 1.5 Flash</span>
+            <span>Gemini 2.5 Flash</span>
           </div>
-          <h3 style={styles.cardTitle}>AI Document Summary</h3>
+          <h3 style={styles.cardTitle}>AI DOCUMENT SUMMARY</h3>
         </div>
-        <span className="tag tag-pink">AI Analyzed</span>
+        <span className="tag tag-red">AI Analyzed</span>
       </div>
 
       <div style={styles.divider} />
@@ -93,11 +78,11 @@ const SummaryCard = ({ result, wallet, showToast }) => {
             onClick={() => copyText(result.ipfsHash, 'cid')}
             title="Copy CID"
             id="copy-cid-btn"
-            style={{ borderRadius: '8px', flexShrink: 0 }}
+            style={{ borderRadius: '4px', flexShrink: 0 }}
           >
             {copied === 'cid' ? (
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <polyline points="20 6 9 17 4 12" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round"/>
+                <polyline points="20 6 9 17 4 12" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
             ) : (
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -114,7 +99,7 @@ const SummaryCard = ({ result, wallet, showToast }) => {
               className="btn btn-secondary btn-sm"
               title="View on IPFS"
               id="view-ipfs-link"
-              style={{ borderRadius: '8px', flexShrink: 0 }}
+              style={{ borderRadius: '4px', flexShrink: 0 }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -135,9 +120,9 @@ const SummaryCard = ({ result, wallet, showToast }) => {
       {/* Blockchain section */}
       {stored ? (
         <div style={styles.successBanner}>
-          <div style={styles.successIconWrap}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <polyline points="20 6 9 17 4 12" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round"/>
+          <div style={styles.successIcon}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <polyline points="20 6 9 17 4 12" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
           </div>
           <div>
@@ -147,7 +132,7 @@ const SummaryCard = ({ result, wallet, showToast }) => {
                 <code style={styles.txCode}>Tx: {txHash.slice(0, 22)}…</code>
                 <button
                   className="btn btn-sm"
-                  style={{ padding: '2px 8px', color: 'var(--text-3)', background: 'transparent', border: 'none', fontFamily: "var(--font-body)", fontSize: '0.75rem' }}
+                  style={{ padding: '2px 8px', color: '#555', background: 'transparent', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: '0.75rem' }}
                   onClick={() => copyText(txHash, 'tx')}
                 >
                   {copied === 'tx' ? '✓ Copied' : 'Copy'}
@@ -159,7 +144,7 @@ const SummaryCard = ({ result, wallet, showToast }) => {
       ) : (
         <button
           className="btn btn-primary"
-          style={{ width: '100%', borderRadius: '10px', padding: '14px' }}
+          style={{ width: '100%', borderRadius: '6px', padding: '14px' }}
           onClick={storeOnChain}
           disabled={storing}
           id="store-on-chain-btn"
@@ -183,13 +168,11 @@ const SummaryCard = ({ result, wallet, showToast }) => {
 
 const styles = {
   card: {
-    background: 'var(--bg-card)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid var(--border)',
-    borderRadius: '16px',
+    background: '#ffffff',
+    border: '2px solid #0a0a0a',
+    borderRadius: '12px',
     padding: '28px',
-    boxShadow: 'var(--shadow-card)',
+    boxShadow: '4px 4px 0px #0a0a0a',
   },
   headerBar: {
     display: 'flex',
@@ -207,59 +190,58 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    background: 'linear-gradient(135deg, #FFB6C1, #FF8DA1)',
+    background: '#0a0a0a',
     color: '#fff',
     padding: '4px 10px',
-    borderRadius: '8px',
-    fontSize: '0.68rem',
+    borderRadius: '4px',
+    fontSize: '0.7rem',
     fontWeight: 700,
     letterSpacing: '0.05em',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
     width: 'fit-content',
-    boxShadow: '0 0 12px rgba(255,182,193,0.35)',
   },
   cardTitle: {
-    fontSize: '1.05rem',
-    fontWeight: 700,
-    color: 'var(--text)',
+    fontSize: '1.1rem',
+    fontWeight: 800,
+    color: '#0a0a0a',
     letterSpacing: '-0.02em',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   divider: {
     height: '1px',
-    background: 'var(--divider)',
+    background: '#e5e5e5',
     margin: '20px 0',
   },
   summaryBox: {
-    background: 'var(--bg-input)',
-    border: '1px solid var(--border)',
-    borderRadius: '10px',
-    padding: '18px',
+    background: '#fafafa',
+    border: '1px solid #e5e5e5',
+    borderRadius: '8px',
+    padding: '20px',
     maxHeight: '200px',
     overflowY: 'auto',
   },
   summaryLabel: {
-    fontSize: '0.62rem',
+    fontSize: '0.65rem',
     fontWeight: 800,
-    color: 'rgba(255,182,193,0.5)',
-    letterSpacing: '0.14em',
+    color: '#999',
+    letterSpacing: '0.12em',
     marginBottom: '10px',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   summaryText: {
-    fontSize: '0.88rem',
-    color: 'var(--text-2)',
+    fontSize: '0.9rem',
+    color: '#333',
     lineHeight: 1.8,
     whiteSpace: 'pre-wrap',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   fieldLabel: {
-    fontSize: '0.62rem',
+    fontSize: '0.65rem',
     fontWeight: 800,
-    color: 'rgba(255,182,193,0.5)',
-    letterSpacing: '0.14em',
+    color: '#999',
+    letterSpacing: '0.12em',
     marginBottom: '10px',
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   hashRow: {
     display: 'flex',
@@ -269,54 +251,53 @@ const styles = {
   },
   hashCode: {
     flex: 1,
-    fontSize: '0.7rem',
-    color: 'var(--pink)',
-    background: 'var(--pink-light)',
+    fontSize: '0.72rem',
+    color: '#e84142',
+    background: 'rgba(232,65,66,0.05)',
     padding: '8px 12px',
-    borderRadius: '8px',
-    border: '1px solid var(--border-a)',
+    borderRadius: '4px',
+    border: '1px solid rgba(232,65,66,0.2)',
     wordBreak: 'break-all',
-    fontFamily: "var(--font-mono)",
+    fontFamily: "'DM Mono', monospace",
   },
   hashNote: {
-    fontSize: '0.73rem',
-    color: 'var(--text-3)',
+    fontSize: '0.75rem',
+    color: '#999',
     marginTop: '10px',
     lineHeight: 1.6,
-    fontFamily: "var(--font-body)",
+    fontFamily: "'DM Sans', sans-serif",
   },
   successBanner: {
     display: 'flex',
     alignItems: 'flex-start',
     gap: '14px',
-    background: 'rgba(74,222,128,0.06)',
-    border: '1px solid rgba(74,222,128,0.2)',
-    borderRadius: '12px',
+    background: '#f0fdf4',
+    border: '2px solid #16a34a',
+    borderRadius: '8px',
     padding: '16px 20px',
-    boxShadow: '0 0 20px rgba(74,222,128,0.08)',
+    boxShadow: '2px 2px 0px #16a34a',
   },
-  successIconWrap: {
+  successIcon: {
     width: '36px',
     height: '36px',
-    background: 'rgba(74,222,128,0.1)',
-    border: '1px solid rgba(74,222,128,0.2)',
-    borderRadius: '8px',
+    background: '#dcfce7',
+    borderRadius: '6px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   successTitle: {
-    fontWeight: 700,
-    color: '#4ade80',
-    fontSize: '0.82rem',
-    letterSpacing: '0.06em',
-    fontFamily: "var(--font-body)",
+    fontWeight: 800,
+    color: '#15803d',
+    fontSize: '0.85rem',
+    letterSpacing: '0.05em',
+    fontFamily: "'DM Sans', sans-serif",
   },
   txCode: {
-    fontSize: '0.7rem',
-    color: 'var(--text-3)',
-    fontFamily: "var(--font-mono)",
+    fontSize: '0.72rem',
+    color: '#555',
+    fontFamily: "'DM Mono', monospace",
   },
 }
 
