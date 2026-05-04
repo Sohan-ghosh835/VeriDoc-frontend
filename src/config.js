@@ -5,10 +5,11 @@ export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "/api";
 export const FALLBACK_RPC_URL =
   import.meta.env.VITE_RPC_URL || "https://polygon-amoy.drpc.org";
 
-// 31337 = localhost hardhat, 80002 = Polygon Amoy
+// 31337 = localhost hardhat, 80002 = Polygon Amoy, 11155111 = Sepolia
 const CONTRACT_ADDRESSES = {
-  31337: import.meta.env.VITE_CONTRACT_ADDRESS_31337 || "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  31337: import.meta.env.VITE_CONTRACT_ADDRESS_31337 || "0x809D4Cd773858b6ecc8C3EeED162b51889CEFc16",
   80002: import.meta.env.VITE_CONTRACT_ADDRESS_80002 || "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Mock/Local for now
+  11155111: import.meta.env.VITE_CONTRACT_ADDRESS_SEPOLIA || "0x809D4Cd773858b6ecc8C3EeED162b51889CEFc16",
 };
 
 export const getContractAddressForChain = (chainId) => {
