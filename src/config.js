@@ -3,7 +3,7 @@
 
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "/api";
 export const FALLBACK_RPC_URL =
-  import.meta.env.VITE_RPC_URL || "https://polygon-amoy.drpc.org";
+  import.meta.env.VITE_RPC_URL || "https://sepolia.infura.io/v3/f745713c5d38423f8a7b33f3e48532d9";
 
 // 31337 = localhost hardhat, 80002 = Polygon Amoy, 11155111 = Sepolia
 const CONTRACT_ADDRESSES = {
