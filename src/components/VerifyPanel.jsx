@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ethers } from 'ethers'
-import { VERIDOC_ABI, FALLBACK_RPC_URL, getContractAddressForChain, retryWithBackoff } from '../config'
+import { VERIDOC_ABI, FALLBACK_RPC_URL, FALLBACK_RPC_URLS, getContractAddressForChain, retryWithBackoff } from '../config'
 
 const VerifyPanel = ({ wallet, showToast }) => {
   const [hash, setHash] = useState('')
@@ -28,14 +28,21 @@ const VerifyPanel = ({ wallet, showToast }) => {
     setLoading(true)
     setResult(null)
     try {
-      const provider = wallet?.provider || new ethers.JsonRpcProvider(FALLBACK_RPC_URL)
+      // Rotate through fallback RPCs if no wallet connected
+      let provider = wallet?.provider;
+      if (!provider) {
+        const urls = FALLBACK_RPC_URLS.length > 0 ? FALLBACK_RPC_URLS : [FALLBACK_RPC_URL];
+        // Pick a random URL to spread load across providers
+        const url = urls[Math.floor(Math.random() * urls.length)];
+        provider = new ethers.JsonRpcProvider(url);
+      }
       const chainId = wallet?.chainId ?? Number((await provider.getNetwork()).chainId)
       const contractAddress = getContractAddressForChain(chainId)
       if (!contractAddress) {
         showToast(`Unsupported network (chain ${chainId}). Configure contract address for this chain.`, 'error')
         return
       }
-      const code = await provider.getCode(contractAddress)
+      const code = await retryWithBackoff(() => provider.getCode(contractAddress))
       if (code === '0x') {
         showToast(`Smart contract is not deployed at ${contractAddress} on this network.`, 'error')
         setLoading(false); return
@@ -65,13 +72,13 @@ const VerifyPanel = ({ wallet, showToast }) => {
         showToast(`Unsupported network (chain ${chainId}). Configure contract address for this chain.`, 'error')
         return
       }
-      const code = await wallet.provider.getCode(contractAddress)
+      const code = await retryWithBackoff(() => wallet.provider.getCode(contractAddress))
       if (code === '0x') {
         showToast(`Smart contract is not deployed at ${contractAddress} on this network.`, 'error')
         setVerifying(false); return
       }
       const contract = new ethers.Contract(contractAddress, VERIDOC_ABI, wallet.signer)
-      const tx = await contract.verifyDoc(hash.trim())
+      const tx = await retryWithBackoff(() => contract.verifyDoc(hash.trim()))
       showToast('Verification transaction submitted...', 'info')
       await tx.wait()
       showToast('Document verified on-chain! ✅', 'success')

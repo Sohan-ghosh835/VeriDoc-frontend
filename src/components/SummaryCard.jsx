@@ -37,7 +37,7 @@ const SummaryCard = ({ result, wallet, showToast }) => {
         showToast(`Unsupported network (chain ${chainId}). Configure contract address for this chain.`, 'error')
         return
       }
-      const code = await wallet.provider.getCode(contractAddress)
+      const code = await retryWithBackoff(() => wallet.provider.getCode(contractAddress))
       if (code === '0x') {
         showToast(`Smart contract is not deployed at ${contractAddress} on this network.`, 'error')
         setStoring(false); return

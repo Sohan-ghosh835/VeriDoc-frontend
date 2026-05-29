@@ -32,32 +32,24 @@ function App() {
   }, [])
 
   const connectWallet = async () => {
-    if (!window.ethereum) { showToast('MetaMask not found. Please install it.', 'error'); return }
+    if (!window.ethereum) { showToast('Web3 wallet not found. Please install MetaMask or another compatible browser wallet.', 'error'); return }
     try {
       let provider = new ethers.BrowserProvider(window.ethereum)
       await provider.send('eth_requestAccounts', [])
       const currentNetwork = await provider.getNetwork()
       const currentChainId = Number(currentNetwork.chainId)
-      if (currentChainId !== 31337) {
-        try {
-          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x7a69' }] })
-        } catch (switchError) {
-          if (switchError.code === 4902) {
-            try {
-              await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{ chainId: '0x7a69', chainName: 'Hardhat Localhost', nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, rpcUrls: ['http://127.0.0.1:8545/'] }],
-              })
-            } catch (e) { console.error(e) }
-          }
-        }
-      }
-      provider = new ethers.BrowserProvider(window.ethereum)
+      
       const signer = await provider.getSigner()
       const address = await signer.getAddress()
-      const network = await provider.getNetwork()
-      setWallet({ provider, signer, address, chainId: Number(network.chainId) })
-      showToast(`Wallet connected: ${address.slice(0, 8)}…`, 'success')
+      
+      setWallet({ provider, signer, address, chainId: currentChainId })
+      
+      const SUPPORTED_CHAINS = [31337, 80002, 11155111]
+      if (SUPPORTED_CHAINS.includes(currentChainId)) {
+        showToast(`Wallet connected: ${address.slice(0, 8)}…`, 'success')
+      } else {
+        showToast(`Connected: ${address.slice(0, 8)}… (Warning: Unsupported network chain ${currentChainId}. Please switch to Sepolia, Polygon Amoy, or Hardhat Localhost for full contract functionality.)`, 'info')
+      }
     } catch (err) {
       showToast(`Connection failed: ${err.message}`, 'error')
     }

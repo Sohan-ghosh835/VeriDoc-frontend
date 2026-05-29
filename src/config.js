@@ -3,11 +3,19 @@
 
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "/api";
 export const FALLBACK_RPC_URL =
-  import.meta.env.VITE_RPC_URL || "https://sepolia.infura.io/v3/f745713c5d38423f8a7b33f3e48532d9";
+  import.meta.env.VITE_RPC_URL || "https://rpc.sepolia.org";
+
+// Multiple fallback RPCs — if one rate-limits, the retry logic rotates to the next
+export const FALLBACK_RPC_URLS = [
+  import.meta.env.VITE_RPC_URL || "https://rpc.sepolia.org",
+  "https://ethereum-sepolia-rpc.publicnode.com",
+  "https://sepolia.gateway.tenderly.co",
+  "https://1rpc.io/sepolia",
+];
 
 // 31337 = localhost hardhat, 80002 = Polygon Amoy, 11155111 = Sepolia
 const CONTRACT_ADDRESSES = {
-  31337: import.meta.env.VITE_CONTRACT_ADDRESS_31337 || "0x809D4Cd773858b6ecc8C3EeED162b51889CEFc16",
+  31337: import.meta.env.VITE_CONTRACT_ADDRESS_31337 || "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   80002: import.meta.env.VITE_CONTRACT_ADDRESS_80002 || "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Mock/Local for now
   11155111: import.meta.env.VITE_CONTRACT_ADDRESS_SEPOLIA || "0x809D4Cd773858b6ecc8C3EeED162b51889CEFc16",
 };
@@ -83,20 +91,50 @@ export const VERIDOC_ABI = [
   { "inputs": [{ "internalType": "string", "name": "_docHash", "type": "string" }], "name": "verifyDoc", "outputs": [], "stateMutability": "nonpayable", "type": "function" }
 ];
 
-export const retryWithBackoff = async (fn, retries = 3, delay = 1000) => {
+/**
+ * Detect transient / rate-limit RPC errors that are worth retrying.
+ */
+const isTransientError = (error) => {
+  const msg = String(error?.message || '').toLowerCase();
+  const reason = String(error?.reason || '').toLowerCase();
+  const code = error?.code;
+  const status = error?.status || error?.response?.status;
+
+  // HTTP 429 Too Many Requests
+  if (status === 429) return true;
+  // ethers.js error codes for server / network issues
+  if (code === 'SERVER_ERROR' || code === 'TIMEOUT' || code === 'NETWORK_ERROR') return true;
+  // Common rate-limit / capacity phrases from various RPC providers
+  const patterns = [
+    'rate limit', 'rate-limit', 'ratelimit',
+    'too many requests', 'too many errors',
+    'exceeded', 'throttle', 'capacity',
+    'econnreset', 'etimedout', 'enotfound',
+    'failed to fetch', 'network error',
+    'could not coalesce error', 'unknown_error',
+    'backend', 'bad gateway', '502', '503', '504',
+  ];
+  return patterns.some(p => msg.includes(p) || reason.includes(p));
+};
+
+/**
+ * Retry an async function with exponential backoff + jitter.
+ * On transient errors it waits and retries; on permanent errors it throws immediately.
+ */
+export const retryWithBackoff = async (fn, retries = 4, delay = 1500) => {
   try {
     return await fn();
   } catch (error) {
     if (retries <= 0) throw error;
-    const isRateLimit = String(error?.message || '').toLowerCase().includes('rate limit') || 
-                        String(error?.reason || '').toLowerCase().includes('rate limit') ||
-                        error?.code === 'SERVER_ERROR';
-    
-    if (isRateLimit) {
-      console.warn(`Rate limited. Retrying in ${delay}ms... (${retries} retries left)`);
-      await new Promise(r => setTimeout(r, delay));
-      return retryWithBackoff(fn, retries - 1, delay * 2);
-    }
-    throw error;
+    if (!isTransientError(error)) throw error;
+
+    // Add ±25% jitter to avoid thundering herd
+    const jitter = delay * (0.75 + Math.random() * 0.5);
+    console.warn(
+      `[VeriDoc] Transient RPC error: ${error?.code || error?.message?.slice(0, 60)}. ` +
+      `Retrying in ${Math.round(jitter)}ms… (${retries} left)`
+    );
+    await new Promise(r => setTimeout(r, jitter));
+    return retryWithBackoff(fn, retries - 1, delay * 2);
   }
 };
